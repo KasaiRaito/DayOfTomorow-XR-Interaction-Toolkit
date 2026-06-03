@@ -49,27 +49,27 @@ namespace UnityEngine.XR.Content.Interaction
 
         [SerializeField]
         [Tooltip("Stores the toggle lever used to choose the locomotion type between move/strafe and teleport/turn for the left hand.")]
-        XRLever m_LeftHandLocomotionTypeToggle;
+        XRSwitch m_LeftHandLocomotionTypeToggle;
 
         [SerializeField]
         [Tooltip("Stores the toggle lever used to choose the locomotion type between move/strafe and teleport/turn for the right hand.")]
-        XRLever m_RightHandLocomotionTypeToggle;
+        XRSwitch m_RightHandLocomotionTypeToggle;
 
         [SerializeField]
         [Tooltip("Stores the toggle lever used to choose the movement direction between head-relative and hand-relative for the left hand.")]
-        XRLever m_LeftHandMovementDirectionToggle;
+        XRSwitch m_LeftHandMovementDirectionToggle;
 
         [SerializeField]
         [Tooltip("Stores the toggle lever used to choose the movement direction between head-relative and hand-relative for the right hand.")]
-        XRLever m_RightHandMovementDirectionToggle;
+        XRSwitch m_RightHandMovementDirectionToggle;
 
         [SerializeField]
         [Tooltip("Stores the toggle lever used to choose the turn style between continuous and snap for the left hand.")]
-        XRLever m_LeftHandTurnStyleToggle;
+        XRSwitch m_LeftHandTurnStyleToggle;
 
         [SerializeField]
         [Tooltip("Stores the toggle lever used to choose the turn style between continuous and snap for the right hand.")]
-        XRLever m_RightHandTurnStyleToggle;
+        XRSwitch m_RightHandTurnStyleToggle;
 
         [SerializeField]
         [Tooltip("Stores the Slider used to set the move speed of continuous movement.")]
