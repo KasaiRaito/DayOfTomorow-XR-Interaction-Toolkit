@@ -168,45 +168,44 @@ namespace UnityEngine.XR.Content.Interaction
 
             SetValue(newValue);
              
-            Debug.Log(newValue);
         }
 
         void SetValue(float angle, bool forceRotation = false)
         {
-            m_Value = angle;
-            SetHandleAngle(m_Value);
-            
-            m_OnLeverChangeValue.Invoke();
+            var targetAngle = angle;
             
             if (!isSelected && (m_LockToValue || forceRotation))
-            {
-                SetHandleAngle(FindNearestStableAngle());
-            }
+                targetAngle = FindNearestStableAngle(angle);
+            
+            m_Value = targetAngle;
+            SetHandleAngle(targetAngle);
+            
+            Debug.Log(m_Value);
+            
+            m_OnLeverChangeValue.Invoke();
         }
 
-        float FindNearestStableAngle()
+        float FindNearestStableAngle(float angle)
         {
-            int closestIndex = -1;
-            float smallestDT = float.MaxValue;
+            if (m_StablePositions.Count == 0 )
+                return angle;
             
-            float closestDistance = float.MaxValue;
+            var closestAngle = m_StablePositions[0];
+            var smallestDistance = Mathf.Abs(Mathf.DeltaAngle(angle, closestAngle));
 
-            for (int i = 0; i < m_StablePositions.Count; i++)
+            for (int i = 1; i < m_StablePositions.Count; i++)
             {
-                float dt = Mathf.Abs(m_StablePositions[i] - m_Handle.localRotation.x);
+                var stableAngle = m_StablePositions[i];
+                var distance = Mathf.Abs(Mathf.DeltaAngle(angle, stableAngle));
                 
-                if(dt < smallestDT)
+                if (distance < smallestDistance)
                 {
-                    closestIndex = i;
-                    smallestDT = dt;
+                    closestAngle = stableAngle;
+                    smallestDistance = distance;
                 }
             }
             
-            if(closestIndex != -1)
-                return m_StablePositions[closestIndex];
-            
-            else
-                return m_StablePositions[0];
+            return closestAngle;
         }
 
         void SetHandleAngle(float angle)
