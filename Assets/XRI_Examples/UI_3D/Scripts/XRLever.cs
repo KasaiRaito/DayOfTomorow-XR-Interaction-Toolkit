@@ -180,7 +180,7 @@ namespace UnityEngine.XR.Content.Interaction
             m_Value = targetAngle;
             SetHandleAngle(targetAngle);
             
-            Debug.Log(m_Value);
+            //Debug.Log(m_Value);
             
             m_OnLeverChangeValue.Invoke();
         }
