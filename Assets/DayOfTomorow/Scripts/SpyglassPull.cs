@@ -18,6 +18,10 @@ public class SpyglassPull : MonoBehaviour
     [SerializeField]
     Vector2 yawLimits = new Vector2(-180f, 180f);
 
+    [Header("Deployment Latch")]
+    [SerializeField, Range(0f, 1f)]
+    float deployedLatchThreshold = 0.7f;
+
     [Header("Gesture Detection")]
     [FormerlySerializedAs("pullGestureThreshold")]
     [SerializeField, Min(0.001f)]
@@ -36,6 +40,7 @@ public class SpyglassPull : MonoBehaviour
     public bool IsGrabbed => primaryInteractor != null;
     public bool IsPulling => gestureMode == GestureMode.Pulling;
     public bool IsRotating => gestureMode == GestureMode.Rotating;
+    public bool IsLatchedDeployed => isLatchedDeployed;
     public float Yaw => currentYaw;
 
     enum GestureMode
@@ -61,6 +66,7 @@ public class SpyglassPull : MonoBehaviour
     Vector3 previousTwoHandMidpoint;
     Vector3 previousTwoHandDirection;
     bool hasPreviousTwoHandDirection;
+    bool isLatchedDeployed;
 
     void Awake()
     {
@@ -117,9 +123,13 @@ public class SpyglassPull : MonoBehaviour
         }
         else
         {
+            float targetPullDistance = isLatchedDeployed
+                ? maxPullDistance
+                : 0f;
+
             currentPullDistance = Mathf.MoveTowards(
                 currentPullDistance,
-                0f,
+                targetPullDistance,
                 retractSpeed * Time.deltaTime);
         }
 
@@ -198,7 +208,10 @@ public class SpyglassPull : MonoBehaviour
         if (primaryInteractor != null)
             BeginSingleHandPull();
         else
+        {
             gestureMode = GestureMode.None;
+            UpdateDeploymentLatch();
+        }
     }
 
     void BeginSingleHandPull()
@@ -374,6 +387,14 @@ public class SpyglassPull : MonoBehaviour
         secondaryInteractor = null;
         secondaryHandle = null;
         gestureMode = GestureMode.None;
+    }
+
+    void UpdateDeploymentLatch()
+    {
+        isLatchedDeployed =
+            maxPullDistance > Mathf.Epsilon &&
+            currentPullDistance / maxPullDistance >=
+            Mathf.Clamp01(deployedLatchThreshold);
     }
 
     Vector3 GetWorldUpAxis()
