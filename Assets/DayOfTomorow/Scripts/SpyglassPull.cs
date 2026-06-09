@@ -32,21 +32,6 @@ public class SpyglassPull : MonoBehaviour
 
         if (grabHandles == null || grabHandles.Length == 0)
             grabHandles = GetComponentsInChildren<XRBaseInteractable>(true);
-
-        for (int i = 0; i < grabHandles.Length; i++)
-        {
-            XRBaseInteractable handle = grabHandles[i];
-
-            if (handle == null)
-                continue;
-
-            Rigidbody handleBody = handle.GetComponent<Rigidbody>();
-            if (handleBody != null)
-            {
-                handleBody.useGravity = false;
-                handleBody.isKinematic = true;
-            }
-        }
     }
 
     void OnEnable()
