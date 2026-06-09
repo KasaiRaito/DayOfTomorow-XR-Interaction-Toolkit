@@ -201,16 +201,8 @@ public class SpyglassDisplay : MonoBehaviour
         Vector3 aimDirection = cannonRayOrigin.TransformDirection(localAimAxis).normalized;
         Vector3 aimPoint = cannonRayOrigin.position + aimDirection * maxAimDistance;
 
-        if (Physics.Raycast(
-                cannonRayOrigin.position,
-                aimDirection,
-                out RaycastHit hit,
-                maxAimDistance,
-                aimLayers,
-                QueryTriggerInteraction.Ignore))
-        {
+        if (TryGetCannonHit(out RaycastHit hit))
             aimPoint = hit.point;
-        }
 
         Vector3 viewportPoint = spyglassCamera.WorldToViewportPoint(aimPoint);
         cannonMarker.gameObject.SetActive(displayActive);
@@ -241,6 +233,27 @@ public class SpyglassDisplay : MonoBehaviour
         cannonMarker.anchorMin = markerPosition;
         cannonMarker.anchorMax = markerPosition;
         cannonMarker.anchoredPosition = Vector2.zero;
+    }
+
+    public bool TryGetCannonHit(out RaycastHit hit)
+    {
+        hit = default;
+
+        if (cannonRayOrigin == null)
+            return false;
+
+        Vector3 aimDirection = cannonRayOrigin.TransformDirection(localAimAxis).normalized;
+
+        if (aimDirection.sqrMagnitude <= Mathf.Epsilon)
+            return false;
+
+        return Physics.Raycast(
+            cannonRayOrigin.position,
+            aimDirection,
+            out hit,
+            maxAimDistance,
+            aimLayers,
+            QueryTriggerInteraction.Ignore);
     }
 
     Vector2 GetViewportEdgePosition(Vector2 directionFromCenter)

@@ -8,11 +8,12 @@ public class Tank : MonoBehaviour
     public TextMeshProUGUI LocationDisplay;
 
     [Header("Controls")]
-    // Leavers
+    // Movement
     public XRLever LeftCaterpilar_Lever;
     public XRLever RightCaterpilar_Lever;
-    //JoyStick
+    // Canon
     public XRJoystick Canon_Joystick;
+    public XRPushButton Shoot_Button;
 
     [Header("Canon")]
     [SerializeField]
@@ -26,6 +27,16 @@ public class Tank : MonoBehaviour
 
     [SerializeField]
     Vector2 canonPitchLimits = new Vector2(-10f, 45f);
+
+    [Header("Shooting")]
+    [SerializeField]
+    SpyglassDisplay spyglassDisplay;
+
+    [SerializeField]
+    GameObject explosionFxPrefab;
+
+    [SerializeField, Min(0f)]
+    float explosionFxLifetime = 5f;
 
     [Header("Movement")]
     [SerializeField, Min(0f)]
@@ -55,11 +66,35 @@ public class Tank : MonoBehaviour
         if (Canon_Joystick == null)
             Canon_Joystick = GetComponentInChildren<XRJoystick>(true);
 
+        if (Shoot_Button == null)
+            Shoot_Button = FindChildComponent<XRPushButton>("Shoot_Button");
+
+        if (Shoot_Button == null)
+            Shoot_Button = GetComponentInChildren<XRPushButton>(true);
+
         if (canonAimSphere == null)
             canonAimSphere = FindChildTransform("Orbiit");
 
+        if (spyglassDisplay == null)
+            spyglassDisplay = GetComponentInChildren<SpyglassDisplay>(true);
+
+        if (spyglassDisplay == null)
+            spyglassDisplay = FindAnyObjectByType<SpyglassDisplay>(FindObjectsInactive.Include);
+
         if (canonAimSphere != null)
             initialCanonRotation = canonAimSphere.localRotation;
+    }
+
+    void OnEnable()
+    {
+        if (Shoot_Button != null)
+            Shoot_Button.onPress.AddListener(Shoot);
+    }
+
+    void OnDisable()
+    {
+        if (Shoot_Button != null)
+            Shoot_Button.onPress.RemoveListener(Shoot);
     }
 
     void Update()
@@ -127,6 +162,24 @@ public class Tank : MonoBehaviour
 
         canonAimSphere.localRotation =
             initialCanonRotation * Quaternion.Euler(0f, canonYaw, canonPitch);
+    }
+
+    public void Shoot()
+    {
+        if (spyglassDisplay == null ||
+            explosionFxPrefab == null ||
+            !spyglassDisplay.TryGetCannonHit(out RaycastHit hit))
+        {
+            return;
+        }
+
+        GameObject explosionFx = Instantiate(
+            explosionFxPrefab,
+            hit.point,
+            Quaternion.identity);
+
+        if (explosionFxLifetime > 0f)
+            Destroy(explosionFx, explosionFxLifetime);
     }
 
     T FindChildComponent<T>(string objectName) where T : Component
