@@ -22,6 +22,13 @@ public class SpyglassDisplay : MonoBehaviour
     [SerializeField]
     Vector2Int renderTextureResolution = new Vector2Int(1024, 512);
 
+    [Header("Roof Camera")]
+    [SerializeField]
+    Transform tankRoot;
+
+    [SerializeField]
+    float cameraYawMultiplier = 2f;
+
     [Header("Cannon Aim")]
     [SerializeField]
     Transform cannonMuzzle;
@@ -39,6 +46,7 @@ public class SpyglassDisplay : MonoBehaviour
     float markerSize = 0.05f;
 
     RenderTexture renderTexture;
+    Quaternion cameraBaseRotationRelativeToTank;
 
     void Awake()
     {
@@ -57,6 +65,10 @@ public class SpyglassDisplay : MonoBehaviour
         if (cannonMuzzle == null)
             cannonMuzzle = FindTransformByName("CannonMuzzle");
 
+        if (tankRoot == null && spyglassPull != null)
+            tankRoot = spyglassPull.transform.root;
+
+        CacheCameraHeading();
         CreateRenderTexture();
 
         if (spyglassCamera != null)
@@ -100,6 +112,8 @@ public class SpyglassDisplay : MonoBehaviour
 
     void LateUpdate()
     {
+        UpdateRoofCamera();
+
         bool displayActive =
             spyglassPull == null || spyglassPull.Deployment >= cameraActivationThreshold;
 
@@ -110,6 +124,44 @@ public class SpyglassDisplay : MonoBehaviour
             outsideView.enabled = displayActive;
 
         UpdateCannonMarker(displayActive);
+    }
+
+    void CacheCameraHeading()
+    {
+        if (spyglassCamera == null || tankRoot == null)
+            return;
+
+        Vector3 levelForward = Vector3.ProjectOnPlane(
+            spyglassCamera.transform.forward,
+            tankRoot.up);
+
+        if (levelForward.sqrMagnitude <= Mathf.Epsilon)
+            levelForward = tankRoot.forward;
+
+        Quaternion levelRotation = Quaternion.LookRotation(
+            levelForward.normalized,
+            tankRoot.up);
+
+        cameraBaseRotationRelativeToTank =
+            Quaternion.Inverse(tankRoot.rotation) * levelRotation;
+    }
+
+    void UpdateRoofCamera()
+    {
+        if (spyglassCamera == null || tankRoot == null)
+            return;
+
+        Transform cameraTransform = spyglassCamera.transform;
+
+        float spyglassYaw =
+            spyglassPull != null
+                ? spyglassPull.Yaw * cameraYawMultiplier
+                : 0f;
+
+        cameraTransform.rotation =
+            tankRoot.rotation *
+            Quaternion.AngleAxis(spyglassYaw, Vector3.up) *
+            cameraBaseRotationRelativeToTank;
     }
 
     void CreateRenderTexture()
