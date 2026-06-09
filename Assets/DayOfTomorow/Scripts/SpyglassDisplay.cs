@@ -34,6 +34,9 @@ public class SpyglassDisplay : MonoBehaviour
     Transform cannonMuzzle;
 
     [SerializeField]
+    Transform cannonRayOrigin;
+
+    [SerializeField]
     Vector3 localAimAxis = Vector3.up;
 
     [SerializeField, Min(1f)]
@@ -64,6 +67,12 @@ public class SpyglassDisplay : MonoBehaviour
 
         if (cannonMuzzle == null)
             cannonMuzzle = FindTransformByName("CannonMuzzle");
+
+        if (cannonRayOrigin == null && cannonMuzzle != null)
+            cannonRayOrigin = cannonMuzzle.Find("Gun");
+
+        if (cannonRayOrigin == null)
+            cannonRayOrigin = cannonMuzzle;
 
         if (tankRoot == null && spyglassPull != null)
             tankRoot = spyglassPull.transform.root;
@@ -186,14 +195,14 @@ public class SpyglassDisplay : MonoBehaviour
 
     void UpdateCannonMarker(bool displayActive)
     {
-        if (cannonMarker == null || spyglassCamera == null || cannonMuzzle == null)
+        if (cannonMarker == null || spyglassCamera == null || cannonRayOrigin == null)
             return;
 
-        Vector3 aimDirection = cannonMuzzle.TransformDirection(localAimAxis).normalized;
-        Vector3 aimPoint = cannonMuzzle.position + aimDirection * maxAimDistance;
+        Vector3 aimDirection = cannonRayOrigin.TransformDirection(localAimAxis).normalized;
+        Vector3 aimPoint = cannonRayOrigin.position + aimDirection * maxAimDistance;
 
         if (Physics.Raycast(
-                cannonMuzzle.position,
+                cannonRayOrigin.position,
                 aimDirection,
                 out RaycastHit hit,
                 maxAimDistance,
