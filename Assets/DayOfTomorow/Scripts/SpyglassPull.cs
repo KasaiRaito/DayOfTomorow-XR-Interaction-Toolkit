@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
@@ -17,23 +18,49 @@ public class SpyglassPull : MonoBehaviour
     [SerializeField]
     Vector2 yawLimits = new Vector2(-180f, 180f);
 
+    [Header("Gesture Detection")]
+    [FormerlySerializedAs("pullGestureThreshold")]
+    [SerializeField, Min(0.001f)]
+    float pullSpeedThreshold = 0.03f;
+
+    [FormerlySerializedAs("rotationGestureThreshold")]
+    [SerializeField, Min(0.1f)]
+    float rotationSpeedThreshold = 5f;
+
+    [SerializeField, Min(1f)]
+    float gestureSwitchBias = 1.5f;
+
     public float Deployment =>
         maxPullDistance > Mathf.Epsilon ? currentPullDistance / maxPullDistance : 0f;
 
-    public bool IsGrabbed => activeInteractor != null;
+    public bool IsGrabbed => primaryInteractor != null;
+    public bool IsPulling => gestureMode == GestureMode.Pulling;
+    public bool IsRotating => gestureMode == GestureMode.Rotating;
     public float Yaw => currentYaw;
+
+    enum GestureMode
+    {
+        None,
+        Pulling,
+        ChoosingTwoHandGesture,
+        Rotating
+    }
 
     Vector3 retractedLocalPosition;
     Quaternion initialLocalRotation;
-    IXRSelectInteractor activeInteractor;
-    XRBaseInteractable activeHandle;
+    IXRSelectInteractor primaryInteractor;
+    XRBaseInteractable primaryHandle;
+    IXRSelectInteractor secondaryInteractor;
+    XRBaseInteractable secondaryHandle;
+    GestureMode gestureMode;
     float currentPullDistance;
-    float grabStartPullDistance;
     float currentYaw;
-    float grabStartYaw;
-    Vector3 grabStartPosition;
-    Vector3 grabStartTwistDirection;
-    bool hasGrabStartTwistDirection;
+    float gestureStartPullDistance;
+    float gestureStartYaw;
+    Vector3 singleHandStartPosition;
+    Vector3 previousTwoHandMidpoint;
+    Vector3 previousTwoHandDirection;
+    bool hasPreviousTwoHandDirection;
 
     void Awake()
     {
@@ -57,40 +84,36 @@ public class SpyglassPull : MonoBehaviour
             handle.selectEntered.AddListener(OnGrabbed);
             handle.selectExited.AddListener(OnReleased);
         }
+
+        FindExistingGrabs();
     }
 
     void OnDisable()
     {
-        if (grabHandles == null)
-            return;
-
-        foreach (XRBaseInteractable handle in grabHandles)
+        if (grabHandles != null)
         {
-            if (handle == null)
-                continue;
+            foreach (XRBaseInteractable handle in grabHandles)
+            {
+                if (handle == null)
+                    continue;
 
-            handle.selectEntered.RemoveListener(OnGrabbed);
-            handle.selectExited.RemoveListener(OnReleased);
+                handle.selectEntered.RemoveListener(OnGrabbed);
+                handle.selectExited.RemoveListener(OnReleased);
+            }
         }
 
-        activeInteractor = null;
-        activeHandle = null;
+        ClearGrabs();
     }
 
     void LateUpdate()
     {
-        if (activeInteractor != null && activeHandle != null)
+        if (secondaryInteractor != null && secondaryHandle != null)
         {
-            Transform handAttach = activeInteractor.GetAttachTransform(activeHandle);
-            Vector3 pullAxis = GetWorldPullAxis();
-            float handMovement = Vector3.Dot(handAttach.position - grabStartPosition, pullAxis);
-
-            currentPullDistance = Mathf.Clamp(
-                grabStartPullDistance + handMovement,
-                0f,
-                maxPullDistance);
-
-            UpdateTwist(handAttach.position);
+            UpdateTwoHandGesture();
+        }
+        else if (primaryInteractor != null && primaryHandle != null)
+        {
+            UpdateSingleHandPull();
         }
         else
         {
@@ -106,79 +129,251 @@ public class SpyglassPull : MonoBehaviour
 
     void OnGrabbed(SelectEnterEventArgs args)
     {
-        BeginGrab(
+        AddGrab(
             args.interactorObject,
             args.interactableObject as XRBaseInteractable);
     }
 
     void OnReleased(SelectExitEventArgs args)
     {
-        if (args.interactorObject != activeInteractor)
-            return;
-
-        activeInteractor = null;
-        activeHandle = null;
-
-        FindRemainingGrab();
+        RemoveGrab(
+            args.interactorObject,
+            args.interactableObject as XRBaseInteractable);
     }
 
-    void FindRemainingGrab()
+    void FindExistingGrabs()
     {
         foreach (XRBaseInteractable handle in grabHandles)
         {
-            if (handle == null || handle.interactorsSelecting.Count == 0)
+            if (handle == null)
                 continue;
 
-            BeginGrab(handle.interactorsSelecting[0], handle);
-            return;
+            foreach (IXRSelectInteractor interactor in handle.interactorsSelecting)
+                AddGrab(interactor, handle);
         }
     }
 
-    void BeginGrab(IXRSelectInteractor interactor, XRBaseInteractable handle)
+    void AddGrab(IXRSelectInteractor interactor, XRBaseInteractable handle)
     {
-        activeInteractor = interactor;
-        activeHandle = handle;
-
-        if (activeInteractor == null || activeHandle == null)
+        if (interactor == null || handle == null)
             return;
 
-        grabStartPullDistance = currentPullDistance;
-        grabStartYaw = currentYaw;
+        if (interactor == primaryInteractor || interactor == secondaryInteractor)
+            return;
 
-        Vector3 handPosition =
-            activeInteractor.GetAttachTransform(activeHandle).position;
+        if (primaryInteractor == null)
+        {
+            primaryInteractor = interactor;
+            primaryHandle = handle;
+            BeginSingleHandPull();
+            return;
+        }
 
-        grabStartPosition = handPosition;
-        grabStartTwistDirection = GetTwistDirection(handPosition);
-        hasGrabStartTwistDirection =
-            grabStartTwistDirection.sqrMagnitude > Mathf.Epsilon;
+        if (secondaryInteractor == null)
+        {
+            secondaryInteractor = interactor;
+            secondaryHandle = handle;
+            BeginTwoHandGesture();
+        }
     }
 
-    void UpdateTwist(Vector3 handPosition)
+    void RemoveGrab(IXRSelectInteractor interactor, XRBaseInteractable handle)
     {
-        if (!hasGrabStartTwistDirection)
+        if (interactor == secondaryInteractor && handle == secondaryHandle)
+        {
+            secondaryInteractor = null;
+            secondaryHandle = null;
+            BeginSingleHandPull();
+            return;
+        }
+
+        if (interactor != primaryInteractor || handle != primaryHandle)
             return;
 
-        Vector3 currentDirection = GetTwistDirection(handPosition);
-        if (currentDirection.sqrMagnitude <= Mathf.Epsilon)
-            return;
+        primaryInteractor = secondaryInteractor;
+        primaryHandle = secondaryHandle;
+        secondaryInteractor = null;
+        secondaryHandle = null;
 
-        float twistDelta = Vector3.SignedAngle(
-            grabStartTwistDirection,
-            currentDirection,
-            GetWorldUpAxis());
-
-        currentYaw = Mathf.Clamp(
-            grabStartYaw + twistDelta,
-            Mathf.Min(yawLimits.x, yawLimits.y),
-            Mathf.Max(yawLimits.x, yawLimits.y));
+        if (primaryInteractor != null)
+            BeginSingleHandPull();
+        else
+            gestureMode = GestureMode.None;
     }
 
-    Vector3 GetTwistDirection(Vector3 handPosition)
+    void BeginSingleHandPull()
+    {
+        if (!TryGetHandPosition(primaryInteractor, primaryHandle, out singleHandStartPosition))
+        {
+            gestureMode = GestureMode.None;
+            return;
+        }
+
+        gestureStartPullDistance = currentPullDistance;
+        gestureStartYaw = currentYaw;
+        gestureMode = GestureMode.Pulling;
+    }
+
+    void BeginTwoHandGesture()
+    {
+        if (!TryGetTwoHandPositions(out Vector3 primaryPosition, out Vector3 secondaryPosition))
+        {
+            gestureMode = GestureMode.None;
+            return;
+        }
+
+        previousTwoHandMidpoint = (primaryPosition + secondaryPosition) * 0.5f;
+        previousTwoHandDirection = GetTwoHandDirection(primaryPosition, secondaryPosition);
+        hasPreviousTwoHandDirection =
+            previousTwoHandDirection.sqrMagnitude > Mathf.Epsilon;
+        gestureMode = GestureMode.ChoosingTwoHandGesture;
+    }
+
+    void UpdateSingleHandPull()
+    {
+        if (!TryGetHandPosition(primaryInteractor, primaryHandle, out Vector3 handPosition))
+            return;
+
+        float pullDelta = Vector3.Dot(
+            handPosition - singleHandStartPosition,
+            GetWorldPullAxis());
+
+        currentPullDistance = Mathf.Clamp(
+            gestureStartPullDistance + pullDelta,
+            0f,
+            maxPullDistance);
+
+        currentYaw = gestureStartYaw;
+    }
+
+    void UpdateTwoHandGesture()
+    {
+        if (!TryGetTwoHandPositions(out Vector3 primaryPosition, out Vector3 secondaryPosition))
+            return;
+
+        Vector3 midpoint = (primaryPosition + secondaryPosition) * 0.5f;
+        float pullDelta = Vector3.Dot(
+            midpoint - previousTwoHandMidpoint,
+            GetWorldPullAxis());
+
+        float rotationDelta = 0f;
+        Vector3 currentDirection = GetTwoHandDirection(primaryPosition, secondaryPosition);
+
+        if (hasPreviousTwoHandDirection && currentDirection.sqrMagnitude > Mathf.Epsilon)
+        {
+            rotationDelta = Vector3.SignedAngle(
+                previousTwoHandDirection,
+                currentDirection,
+                GetWorldUpAxis());
+        }
+
+        UpdateTwoHandGestureMode(pullDelta, rotationDelta);
+
+        if (gestureMode == GestureMode.Pulling)
+        {
+            currentPullDistance = Mathf.Clamp(
+                currentPullDistance + pullDelta,
+                0f,
+                maxPullDistance);
+        }
+        else if (gestureMode == GestureMode.Rotating)
+        {
+            currentYaw = Mathf.Clamp(
+                currentYaw + rotationDelta,
+                Mathf.Min(yawLimits.x, yawLimits.y),
+                Mathf.Max(yawLimits.x, yawLimits.y));
+        }
+
+        previousTwoHandMidpoint = midpoint;
+
+        if (currentDirection.sqrMagnitude > Mathf.Epsilon)
+        {
+            previousTwoHandDirection = currentDirection;
+            hasPreviousTwoHandDirection = true;
+        }
+    }
+
+    void UpdateTwoHandGestureMode(float pullDelta, float rotationDelta)
+    {
+        float deltaTime = Mathf.Max(Time.deltaTime, 0.0001f);
+        float pullScore =
+            Mathf.Abs(pullDelta) /
+            (Mathf.Max(0.001f, pullSpeedThreshold) * deltaTime);
+        float rotationScore = hasPreviousTwoHandDirection
+            ? Mathf.Abs(rotationDelta) /
+              (Mathf.Max(0.1f, rotationSpeedThreshold) * deltaTime)
+            : 0f;
+
+        float switchBias = Mathf.Max(1f, gestureSwitchBias);
+
+        if (gestureMode == GestureMode.Pulling)
+        {
+            if (rotationScore >= 1f && rotationScore > pullScore * switchBias)
+                gestureMode = GestureMode.Rotating;
+
+            return;
+        }
+
+        if (gestureMode == GestureMode.Rotating)
+        {
+            if (pullScore >= 1f && pullScore > rotationScore * switchBias)
+                gestureMode = GestureMode.Pulling;
+
+            return;
+        }
+
+        if (pullScore >= 1f || rotationScore >= 1f)
+        {
+            gestureMode = pullScore >= rotationScore
+                ? GestureMode.Pulling
+                : GestureMode.Rotating;
+        }
+    }
+
+    bool TryGetTwoHandPositions(
+        out Vector3 primaryPosition,
+        out Vector3 secondaryPosition)
+    {
+        bool hasPrimary =
+            TryGetHandPosition(primaryInteractor, primaryHandle, out primaryPosition);
+        bool hasSecondary =
+            TryGetHandPosition(secondaryInteractor, secondaryHandle, out secondaryPosition);
+
+        return hasPrimary && hasSecondary;
+    }
+
+    bool TryGetHandPosition(
+        IXRSelectInteractor interactor,
+        XRBaseInteractable handle,
+        out Vector3 position)
+    {
+        position = default;
+
+        if (interactor == null || handle == null)
+            return false;
+
+        Transform attachTransform = interactor.GetAttachTransform(handle);
+        if (attachTransform == null)
+            return false;
+
+        position = attachTransform.position;
+        return true;
+    }
+
+    Vector3 GetTwoHandDirection(Vector3 primaryPosition, Vector3 secondaryPosition)
     {
         return Vector3.ProjectOnPlane(
-            handPosition - transform.position,
+            secondaryPosition - primaryPosition,
             GetWorldUpAxis()).normalized;
+    }
+
+    void ClearGrabs()
+    {
+        primaryInteractor = null;
+        primaryHandle = null;
+        secondaryInteractor = null;
+        secondaryHandle = null;
+        gestureMode = GestureMode.None;
     }
 
     Vector3 GetWorldUpAxis()
