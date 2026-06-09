@@ -66,6 +66,10 @@ public class Tank : MonoBehaviour
         if (Canon_Joystick == null)
             Canon_Joystick = GetComponentInChildren<XRJoystick>(true);
 
+        DirectOnlyInteractionFilter.ApplyTo(LeftCaterpilar_Lever);
+        DirectOnlyInteractionFilter.ApplyTo(RightCaterpilar_Lever);
+        DirectOnlyInteractionFilter.ApplyTo(Canon_Joystick);
+
         if (Shoot_Button == null)
             Shoot_Button = FindChildComponent<XRPushButton>("Shoot_Button");
 

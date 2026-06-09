@@ -75,6 +75,9 @@ public class SpyglassPull : MonoBehaviour
 
         if (grabHandles == null || grabHandles.Length == 0)
             grabHandles = GetComponentsInChildren<XRBaseInteractable>(true);
+
+        foreach (XRBaseInteractable handle in grabHandles)
+            DirectOnlyInteractionFilter.ApplyTo(handle);
     }
 
     void OnEnable()
