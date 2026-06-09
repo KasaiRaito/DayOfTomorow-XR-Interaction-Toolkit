@@ -48,9 +48,6 @@ public class SpyglassDisplay : MonoBehaviour
     [SerializeField]
     LayerMask aimLayers = ~0;
 
-    [SerializeField, Min(0.001f)]
-    float markerSize = 0.05f;
-
     RenderTexture renderTexture;
     Quaternion cameraBaseRotationRelativeToTank;
 
@@ -102,7 +99,6 @@ public class SpyglassDisplay : MonoBehaviour
         {
             cannonMarker.anchorMin = new Vector2(0.5f, 0.5f);
             cannonMarker.anchorMax = new Vector2(0.5f, 0.5f);
-            cannonMarker.sizeDelta = Vector2.one * markerSize;
 
             Graphic markerGraphic = cannonMarker.GetComponent<Graphic>();
             if (markerGraphic != null)
