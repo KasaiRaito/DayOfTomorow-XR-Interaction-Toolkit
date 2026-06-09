@@ -213,23 +213,64 @@ public class SpyglassDisplay : MonoBehaviour
         }
 
         Vector3 viewportPoint = spyglassCamera.WorldToViewportPoint(aimPoint);
-        bool markerVisible =
-            displayActive &&
-            viewportPoint.z > 0f &&
-            viewportPoint.x >= 0f &&
-            viewportPoint.x <= 1f &&
-            viewportPoint.y >= 0f &&
-            viewportPoint.y <= 1f;
+        cannonMarker.gameObject.SetActive(displayActive);
 
-        cannonMarker.gameObject.SetActive(markerVisible);
-
-        if (!markerVisible)
+        if (!displayActive)
             return;
 
         Vector2 markerPosition = new Vector2(viewportPoint.x, viewportPoint.y);
+
+        bool aimPointIsOnScreen =
+            viewportPoint.z > 0f &&
+            markerPosition.x >= 0f &&
+            markerPosition.x <= 1f &&
+            markerPosition.y >= 0f &&
+            markerPosition.y <= 1f;
+
+        if (!aimPointIsOnScreen)
+        {
+            Vector2 directionFromCenter = markerPosition - Vector2.one * 0.5f;
+
+            // Viewport coordinates are mirrored when the target is behind the camera.
+            if (viewportPoint.z < 0f)
+                directionFromCenter = -directionFromCenter;
+
+            markerPosition = GetViewportEdgePosition(directionFromCenter);
+        }
+
         cannonMarker.anchorMin = markerPosition;
         cannonMarker.anchorMax = markerPosition;
         cannonMarker.anchoredPosition = Vector2.zero;
+    }
+
+    Vector2 GetViewportEdgePosition(Vector2 directionFromCenter)
+    {
+        if (directionFromCenter.sqrMagnitude <= Mathf.Epsilon)
+            directionFromCenter = Vector2.down;
+
+        RectTransform markerParent = cannonMarker.parent as RectTransform;
+        Vector2 markerHalfSize = cannonMarker.rect.size * 0.5f;
+        Vector2 parentSize = markerParent != null
+            ? markerParent.rect.size
+            : Vector2.one;
+
+        Vector2 viewportMargin = new Vector2(
+            parentSize.x > Mathf.Epsilon ? markerHalfSize.x / parentSize.x : 0f,
+            parentSize.y > Mathf.Epsilon ? markerHalfSize.y / parentSize.y : 0f);
+
+        Vector2 availableHalfSize = new Vector2(
+            Mathf.Max(0f, 0.5f - viewportMargin.x),
+            Mathf.Max(0f, 0.5f - viewportMargin.y));
+
+        float horizontalScale = Mathf.Abs(directionFromCenter.x) > Mathf.Epsilon
+            ? availableHalfSize.x / Mathf.Abs(directionFromCenter.x)
+            : float.PositiveInfinity;
+        float verticalScale = Mathf.Abs(directionFromCenter.y) > Mathf.Epsilon
+            ? availableHalfSize.y / Mathf.Abs(directionFromCenter.y)
+            : float.PositiveInfinity;
+
+        float edgeScale = Mathf.Min(horizontalScale, verticalScale);
+        return Vector2.one * 0.5f + directionFromCenter * edgeScale;
     }
 
     T FindComponentByName<T>(string objectName) where T : Component
