@@ -167,19 +167,26 @@ public class Tank : MonoBehaviour
     public void Shoot()
     {
         if (spyglassDisplay == null ||
-            explosionFxPrefab == null ||
             !spyglassDisplay.TryGetCannonHit(out RaycastHit hit))
         {
             return;
         }
 
-        GameObject explosionFx = Instantiate(
-            explosionFxPrefab,
-            hit.point,
-            Quaternion.identity);
+        if (explosionFxPrefab != null)
+        {
+            GameObject explosionFx = Instantiate(
+                explosionFxPrefab,
+                hit.point,
+                Quaternion.identity);
 
-        if (explosionFxLifetime > 0f)
-            Destroy(explosionFx, explosionFxLifetime);
+            if (explosionFxLifetime > 0f)
+                Destroy(explosionFx, explosionFxLifetime);
+        }
+
+        Target target = hit.collider.GetComponentInParent<Target>();
+
+        if (target != null)
+            target.Hit();
     }
 
     T FindChildComponent<T>(string objectName) where T : Component

@@ -16,6 +16,9 @@ public class SpyglassDisplay : MonoBehaviour
     [SerializeField]
     SpyglassPull spyglassPull;
 
+    [SerializeField]
+    Light lensLight;
+
     [SerializeField, Range(0f, 1f)]
     float cameraActivationThreshold = 0.05f;
 
@@ -65,6 +68,9 @@ public class SpyglassDisplay : MonoBehaviour
         if (cannonMarker == null)
             cannonMarker = FindTransformByName("CannonMarker") as RectTransform;
 
+        if (lensLight == null)
+            lensLight = GetComponentInChildren<Light>(true);
+
         if (cannonMuzzle == null)
             cannonMuzzle = FindTransformByName("CannonMuzzle");
 
@@ -102,6 +108,14 @@ public class SpyglassDisplay : MonoBehaviour
             if (markerGraphic != null)
                 markerGraphic.raycastTarget = false;
         }
+
+        UpdateDisplayState();
+    }
+
+    void OnDisable()
+    {
+        if (lensLight != null)
+            lensLight.enabled = false;
     }
 
     void OnDestroy()
@@ -122,7 +136,11 @@ public class SpyglassDisplay : MonoBehaviour
     void LateUpdate()
     {
         UpdateRoofCamera();
+        UpdateDisplayState();
+    }
 
+    void UpdateDisplayState()
+    {
         bool displayActive =
             spyglassPull == null || spyglassPull.Deployment >= cameraActivationThreshold;
 
@@ -131,6 +149,9 @@ public class SpyglassDisplay : MonoBehaviour
 
         if (outsideView != null && outsideView.enabled != displayActive)
             outsideView.enabled = displayActive;
+
+        if (lensLight != null && lensLight.enabled != displayActive)
+            lensLight.enabled = displayActive;
 
         UpdateCannonMarker(displayActive);
     }
