@@ -2,12 +2,18 @@ using UnityEngine;
 
 public class Alarm : MonoBehaviour
 {
+    static readonly int EmissionColorId =
+        Shader.PropertyToID("_EmissionColor");
+
     [Header("References")]
     [SerializeField]
     Transform distanceOrigin;
 
     [SerializeField]
     Light alarmLight;
+
+    [SerializeField]
+    Material alarmMaterial;
 
     [SerializeField]
     AudioSource audioSource;
@@ -33,9 +39,12 @@ public class Alarm : MonoBehaviour
     float beepVolume = 0.5f;
 
     AudioClip generatedBeepClip;
+    Material sourceAlarmMaterial;
+    Material runtimeAlarmMaterial;
+    Color alarmEmissionColor;
     float nextPulseTime;
-    float lightOffTime;
     bool isPulsing;
+    bool alarmVisualEnabled;
 
     void Awake()
     {
@@ -58,6 +67,8 @@ public class Alarm : MonoBehaviour
 
         if (alarmLight == null)
             alarmLight = GetComponentInChildren<Light>(true);
+
+        PrepareAlarmMaterial();
 
         if (audioSource == null)
             audioSource = GetComponent<AudioSource>();
@@ -108,19 +119,13 @@ public class Alarm : MonoBehaviour
         {
             isPulsing = true;
             nextPulseTime = Time.time;
+            SetLight(false);
         }
 
         if (Time.time >= nextPulseTime)
         {
-            Pulse(clip, beepDuration);
+            Pulse(clip);
             nextPulseTime = Time.time + pulseInterval;
-        }
-
-        if (alarmLight != null &&
-            alarmLight.enabled &&
-            Time.time >= lightOffTime)
-        {
-            alarmLight.enabled = false;
         }
     }
 
@@ -133,6 +138,8 @@ public class Alarm : MonoBehaviour
     {
         if (generatedBeepClip != null)
             Destroy(generatedBeepClip);
+
+        RestoreAndDestroyAlarmMaterial();
     }
 
     void OnValidate()
@@ -165,10 +172,9 @@ public class Alarm : MonoBehaviour
         return Mathf.Sqrt(nearestSqrDistance);
     }
 
-    void Pulse(AudioClip clip, float beepDuration)
+    void Pulse(AudioClip clip)
     {
-        SetLight(true);
-        lightOffTime = Time.time + beepDuration;
+        ToggleLight();
 
         if (audioSource != null && clip != null)
             audioSource.PlayOneShot(clip, beepVolume);
@@ -206,8 +212,87 @@ public class Alarm : MonoBehaviour
 
     void SetLight(bool enabled)
     {
+        alarmVisualEnabled = enabled;
+
         if (alarmLight != null)
             alarmLight.enabled = enabled;
+
+        SetMaterialEmission(enabled);
+    }
+
+    void ToggleLight()
+    {
+        SetLight(!alarmVisualEnabled);
+    }
+
+    void PrepareAlarmMaterial()
+    {
+        if (alarmMaterial == null ||
+            !alarmMaterial.HasProperty(EmissionColorId))
+        {
+            return;
+        }
+
+        sourceAlarmMaterial = alarmMaterial;
+        alarmEmissionColor = alarmMaterial.GetColor(EmissionColorId);
+        runtimeAlarmMaterial = new Material(alarmMaterial)
+        {
+            name = alarmMaterial.name + " (Alarm Runtime)"
+        };
+        alarmMaterial = runtimeAlarmMaterial;
+
+        ReplaceMaterial(sourceAlarmMaterial, runtimeAlarmMaterial);
+    }
+
+    void SetMaterialEmission(bool enabled)
+    {
+        if (runtimeAlarmMaterial == null)
+            return;
+
+        if (enabled)
+        {
+            runtimeAlarmMaterial.EnableKeyword("_EMISSION");
+            runtimeAlarmMaterial.SetColor(
+                EmissionColorId,
+                alarmEmissionColor);
+        }
+        else
+        {
+            runtimeAlarmMaterial.SetColor(EmissionColorId, Color.black);
+            runtimeAlarmMaterial.DisableKeyword("_EMISSION");
+        }
+    }
+
+    void ReplaceMaterial(Material oldMaterial, Material newMaterial)
+    {
+        foreach (Renderer childRenderer in
+                 GetComponentsInChildren<Renderer>(true))
+        {
+            Material[] materials = childRenderer.sharedMaterials;
+            bool materialReplaced = false;
+
+            for (int i = 0; i < materials.Length; i++)
+            {
+                if (materials[i] != oldMaterial)
+                    continue;
+
+                materials[i] = newMaterial;
+                materialReplaced = true;
+            }
+
+            if (materialReplaced)
+                childRenderer.sharedMaterials = materials;
+        }
+    }
+
+    void RestoreAndDestroyAlarmMaterial()
+    {
+        if (runtimeAlarmMaterial == null)
+            return;
+
+        ReplaceMaterial(runtimeAlarmMaterial, sourceAlarmMaterial);
+        Destroy(runtimeAlarmMaterial);
+        runtimeAlarmMaterial = null;
     }
 
     AudioClip GetGeneratedBeepClip()

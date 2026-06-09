@@ -25,14 +25,11 @@ public class TargetSpawner : MonoBehaviour
     int activeTargetCount = 3;
 
     [Header("Spawn Area")]
-    [SerializeField]
-    Transform spawnCenter;
+    [SerializeField, Min(0f)]
+    float spawnRadius = 20f;
 
-    [SerializeField]
-    Vector3 spawnAreaCenter = new Vector3(-15f, 1f, 0f);
-
-    [SerializeField]
-    Vector3 spawnAreaSize = new Vector3(10f, 0f, 10f);
+    [SerializeField, Min(0f)]
+    float minimumSpawnDistance = 5f;
 
     [SerializeField, Min(0f)]
     float minimumTargetSpacing = 2f;
@@ -65,10 +62,9 @@ public class TargetSpawner : MonoBehaviour
     void OnValidate()
     {
         activeTargetCount = Mathf.Max(1, activeTargetCount);
-        spawnAreaSize = new Vector3(
-            Mathf.Abs(spawnAreaSize.x),
-            Mathf.Abs(spawnAreaSize.y),
-            Mathf.Abs(spawnAreaSize.z));
+        spawnRadius = Mathf.Max(0f, spawnRadius);
+        minimumSpawnDistance =
+            Mathf.Clamp(minimumSpawnDistance, 0f, spawnRadius);
         minimumTargetSpacing = Mathf.Max(0f, minimumTargetSpacing);
         spawnPositionAttempts = Mathf.Max(1, spawnPositionAttempts);
     }
@@ -144,20 +140,19 @@ public class TargetSpawner : MonoBehaviour
 
     Vector3 GetRandomSpawnPosition()
     {
-        Vector3 center = spawnCenter != null
-            ? spawnCenter.position
-            : spawnAreaCenter;
-        Vector3 candidate = center;
+        Vector3 candidate = Vector3.zero;
         float minimumSpacingSqr = minimumTargetSpacing * minimumTargetSpacing;
 
         for (int attempt = 0; attempt < spawnPositionAttempts; attempt++)
         {
-            Vector3 offset = new Vector3(
-                UnityEngine.Random.Range(-spawnAreaSize.x * 0.5f, spawnAreaSize.x * 0.5f),
-                UnityEngine.Random.Range(-spawnAreaSize.y * 0.5f, spawnAreaSize.y * 0.5f),
-                UnityEngine.Random.Range(-spawnAreaSize.z * 0.5f, spawnAreaSize.z * 0.5f));
-
-            candidate = center + offset;
+            float angle = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
+            float distance = Mathf.Sqrt(UnityEngine.Random.Range(
+                minimumSpawnDistance * minimumSpawnDistance,
+                spawnRadius * spawnRadius));
+            Vector2 groundOffset = new Vector2(
+                Mathf.Cos(angle),
+                Mathf.Sin(angle)) * distance;
+            candidate = new Vector3(groundOffset.x, 0f, groundOffset.y);
 
             bool isFarEnough = true;
             foreach (Target spawnedTarget in spawnedTargets)
@@ -212,11 +207,28 @@ public class TargetSpawner : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        Vector3 center = spawnCenter != null
-            ? spawnCenter.position
-            : spawnAreaCenter;
-
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(center, spawnAreaSize);
+        DrawSpawnRadius(spawnRadius);
+
+        Gizmos.color = Color.red;
+        DrawSpawnRadius(minimumSpawnDistance);
+    }
+
+    void DrawSpawnRadius(float radius)
+    {
+        const int segmentCount = 64;
+        Vector3 previousPoint = new Vector3(radius, 0f, 0f);
+
+        for (int segment = 1; segment <= segmentCount; segment++)
+        {
+            float angle = segment * Mathf.PI * 2f / segmentCount;
+            Vector3 nextPoint = new Vector3(
+                Mathf.Cos(angle) * radius,
+                0f,
+                Mathf.Sin(angle) * radius);
+
+            Gizmos.DrawLine(previousPoint, nextPoint);
+            previousPoint = nextPoint;
+        }
     }
 }

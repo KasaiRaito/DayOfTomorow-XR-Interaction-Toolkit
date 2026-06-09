@@ -532,6 +532,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Alarm
   distanceOrigin: {fileID: 0}
   alarmLight: {fileID: 7685450818760398224}
+  alarmMaterial: {fileID: 2100000, guid: 64e24707a279dcd409f4d975e38e5501, type: 2}
   audioSource: {fileID: 6463428899168138220}
   beepClip: {fileID: 8300000, guid: 77651ca0c303b4d478afc8d6c093db0f, type: 3}
   minimumDistance: 2

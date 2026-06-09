@@ -1701,6 +1701,70 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &743287362
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 743287366}
+  - component: {fileID: 743287364}
+  - component: {fileID: 743287363}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &743287363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 743287362}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cfcc18f31a5ed6419eed84d71d56fb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameSessionManager
+  sessionDuration: 60
+  playOnStart: 1
+  targetSpawner: {fileID: 0}
+  scoreManager: {fileID: 0}
+  scoreDisplay: {fileID: 1574884018}
+  timerDisplay: {fileID: 220605392}
+--- !u!114 &743287364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 743287362}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 843448cb9292abe479fee754bbc48f11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScoreManager
+  highScoresDisplay: {fileID: 0}
+--- !u!4 &743287366
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 743287362}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.69485, y: 1.51782, z: -1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &747381936
 GameObject:
   m_ObjectHideFlags: 0
@@ -3089,9 +3153,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1267840026}
   - component: {fileID: 1267840027}
-  - component: {fileID: 1267840028}
-  - component: {fileID: 1267840029}
-  - component: {fileID: 1267840030}
   m_Layer: 0
   m_Name: Tank
   m_TagString: Untagged
@@ -3141,72 +3202,13 @@ MonoBehaviour:
   canonAimSphere: {fileID: 957382370}
   canonYawSpeed: 45
   canonPitchSpeed: 30
-  canonPitchLimits: {x: -45, y: 15}
+  canonPitchLimits: {x: 5, y: 20}
   spyglassDisplay: {fileID: 1070880806}
   explosionFxPrefab: {fileID: 7135644945306651397, guid: 487a87172e6ec434590cee7b596aba54, type: 3}
   explosionFxLifetime: 5
   maxTrackSpeed: 2
   trackWidth: 2
   leverDeadZone: 0
---- !u!114 &1267840028
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1267840025}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c6cc695f03be6ea409760b648402a521, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TargetSpawner
-  targetOptions:
-  - targetTemplate: {fileID: 1897861401}
-    scoreValue: 10
-    color: {r: 1, g: 0.15, b: 0.15, a: 1}
-  - targetTemplate: {fileID: 1897861401}
-    scoreValue: 25
-    color: {r: 1, g: 0.8, b: 0.1, a: 1}
-  - targetTemplate: {fileID: 1897861401}
-    scoreValue: 50
-    color: {r: 0.1, g: 0.65, b: 1, a: 1}
-  activeTargetCount: 10
-  spawnCenter: {fileID: 0}
-  spawnAreaCenter: {x: -15, y: 1, z: 0}
-  spawnAreaSize: {x: 10, y: 0, z: 10}
-  minimumTargetSpacing: 2
-  spawnPositionAttempts: 20
---- !u!114 &1267840029
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1267840025}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 843448cb9292abe479fee754bbc48f11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ScoreManager
-  highScoresDisplay: {fileID: 0}
---- !u!114 &1267840030
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1267840025}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0cfcc18f31a5ed6419eed84d71d56fb8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GameSessionManager
-  sessionDuration: 60
-  playOnStart: 1
-  targetSpawner: {fileID: 1267840028}
-  scoreManager: {fileID: 1267840029}
-  scoreDisplay: {fileID: 1574884018}
-  timerDisplay: {fileID: 220605392}
 --- !u!4 &1304659577 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 366349417295850678, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
@@ -4335,6 +4337,65 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1780128613}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1819933108
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1819933109}
+  - component: {fileID: 1819933110}
+  m_Layer: 0
+  m_Name: TargetSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1819933109
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1819933108}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.69485, y: 1.51782, z: -1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1819933110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1819933108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6cc695f03be6ea409760b648402a521, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TargetSpawner
+  targetOptions:
+  - targetTemplate: {fileID: 1897861401}
+    scoreValue: 10
+    color: {r: 1, g: 0.15, b: 0.15, a: 1}
+  - targetTemplate: {fileID: 1897861401}
+    scoreValue: 25
+    color: {r: 1, g: 0.8, b: 0.1, a: 1}
+  - targetTemplate: {fileID: 1897861401}
+    scoreValue: 50
+    color: {r: 0.1, g: 0.65, b: 1, a: 1}
+  activeTargetCount: 20
+  spawnRadius: 50
+  minimumSpawnDistance: 20
+  minimumTargetSpacing: 10
+  spawnPositionAttempts: 20
 --- !u!1 &1897861396
 GameObject:
   m_ObjectHideFlags: 0
@@ -4990,7 +5051,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2478673928345761024, guid: ba9ca82109828b347a4d7e2c10f82f87, type: 3}
       propertyPath: minimumDistance
-      value: 10
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 3582176721187368061, guid: ba9ca82109828b347a4d7e2c10f82f87, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5051,3 +5112,5 @@ SceneRoots:
   - {fileID: 1267840026}
   - {fileID: 364468487}
   - {fileID: 1897861400}
+  - {fileID: 743287366}
+  - {fileID: 1819933109}
