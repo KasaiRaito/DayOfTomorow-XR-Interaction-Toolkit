@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -11,6 +12,8 @@ using UnityEngine.XR.Interaction.Toolkit.UI;
 public class VictoryUI : MonoBehaviour
 {
     const string UILayerName = "UI";
+    const string PlayerLayerName = "Player";
+    const string HudLayerName = "HUD";
 
     [Header("References")]
     [SerializeField]
@@ -24,6 +27,9 @@ public class VictoryUI : MonoBehaviour
 
     [SerializeField]
     Canvas hudCanvas;
+
+    [SerializeField]
+    Transform playerRoot;
 
     [Header("Scores")]
     [SerializeField, Range(1, 10)]
@@ -70,9 +76,19 @@ public class VictoryUI : MonoBehaviour
                 hudCanvas = hudObject.GetComponent<Canvas>();
         }
 
+        FindPlayerRoot();
+        ConfigurePlayerLayer();
         ConfigureHudCanvas();
         BuildUI();
         Hide();
+    }
+
+    IEnumerator Start()
+    {
+        yield return null;
+
+        ConfigurePlayerLayer();
+        ConfigureHudCanvas();
     }
 
     void OnEnable()
@@ -226,12 +242,19 @@ public class VictoryUI : MonoBehaviour
         if (hudCanvas == null || uiCamera == null)
             return;
 
-        int uiLayer = LayerMask.NameToLayer(UILayerName);
+        int hudLayer = LayerMask.NameToLayer(HudLayerName);
 
-        if (uiLayer < 0)
+        if (hudLayer < 0)
+        {
+            Debug.LogError(
+                $"VictoryUI requires the '{HudLayerName}' layer.",
+                this);
             return;
+        }
 
-        SetLayerRecursively(hudCanvas.gameObject, uiLayer);
+        SetLayerRecursively(hudCanvas.gameObject, hudLayer);
+        uiCamera.cullingMask |= 1 << hudLayer;
+        EnableDistanceUIInteraction(hudLayer);
 
         hudCanvas.renderMode = RenderMode.ScreenSpaceCamera;
         hudCanvas.worldCamera = uiCamera;
@@ -253,6 +276,62 @@ public class VictoryUI : MonoBehaviour
         scaler.matchWidthOrHeight = 0.5f;
         scaler.dynamicPixelsPerUnit = 10f;
         scaler.referencePixelsPerUnit = 100f;
+    }
+
+    void FindPlayerRoot()
+    {
+        if (playerRoot != null)
+            return;
+
+        Transform current = uiCamera != null
+            ? uiCamera.transform
+            : null;
+
+        while (current != null)
+        {
+            if (current.name.StartsWith("Complete XR Origin Set Up"))
+            {
+                playerRoot = current;
+                return;
+            }
+
+            current = current.parent;
+        }
+
+        GameObject playerObject =
+            GameObject.Find("Complete XR Origin Set Up Variant");
+
+        if (playerObject == null)
+            playerObject = GameObject.Find("Complete XR Origin Set Up");
+
+        if (playerObject != null)
+            playerRoot = playerObject.transform;
+    }
+
+    void ConfigurePlayerLayer()
+    {
+        if (playerRoot == null || uiCamera == null)
+            return;
+
+        int playerLayer = LayerMask.NameToLayer(PlayerLayerName);
+
+        if (playerLayer < 0)
+        {
+            Debug.LogError(
+                $"VictoryUI requires the '{PlayerLayerName}' layer.",
+                this);
+            return;
+        }
+
+        SetLayerRecursively(playerRoot.gameObject, playerLayer);
+
+        int playerMask = 1 << playerLayer;
+        uiCamera.cullingMask |= playerMask;
+
+        Camera worldCamera = Camera.main;
+
+        if (worldCamera != null && worldCamera != uiCamera)
+            worldCamera.cullingMask &= ~playerMask;
     }
 
     static void SetLayerRecursively(GameObject root, int layer)
