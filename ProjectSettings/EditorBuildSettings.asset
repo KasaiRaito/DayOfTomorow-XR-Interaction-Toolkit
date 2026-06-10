@@ -6,6 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/DayOfTomorow/Levels/MainMenu.unity
+    guid: 8b36e7543f65633408cd4bcb994b5706
+  - enabled: 1
+    path: Assets/DayOfTomorow/Levels/Game.unity
+    guid: edabf78913db68042874287f9d452e06
+  - enabled: 1
     path: Assets/XRI_Examples/Scenes/XRI_Examples_Main.unity
     guid: ba755f5a181505a4799b21685d4c7576
   m_configObjects:

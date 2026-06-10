@@ -1,11 +1,15 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.XR.Content.Interaction;
 
 public class Tank : MonoBehaviour
 {
     [Header("Displays")]
-    public TextMeshProUGUI LocationDisplay;
+    [FormerlySerializedAs("LocationDisplay")]
+    public TMP_Text LeftLeverDisplay;
+
+    public TMP_Text RightLeverDisplay;
 
     [Header("Controls")]
     // Movement
@@ -104,6 +108,7 @@ public class Tank : MonoBehaviour
     void Update()
     {
         AimCanon();
+        UpdateLeverDisplays();
     }
 
     void FixedUpdate()
@@ -111,8 +116,11 @@ public class Tank : MonoBehaviour
         if (LeftCaterpilar_Lever == null || RightCaterpilar_Lever == null)
             return;
 
-        LeftTrackSpeed = GetTrackInput(LeftCaterpilar_Lever) * maxTrackSpeed;
-        RightTrackSpeed = GetTrackInput(RightCaterpilar_Lever) * maxTrackSpeed;
+        float leftInput = GetTrackInput(LeftCaterpilar_Lever);
+        float rightInput = GetTrackInput(RightCaterpilar_Lever);
+
+        LeftTrackSpeed = leftInput * maxTrackSpeed;
+        RightTrackSpeed = rightInput * maxTrackSpeed;
 
         float forwardSpeed = (LeftTrackSpeed + RightTrackSpeed) * 0.5f;
         float angularSpeed = (LeftTrackSpeed - RightTrackSpeed) / trackWidth;
@@ -124,9 +132,25 @@ public class Tank : MonoBehaviour
 
         transform.position += movementDirection * (forwardSpeed * Time.fixedDeltaTime);
         transform.rotation = Quaternion.AngleAxis(deltaAngle, Vector3.up) * transform.rotation;
+    }
 
-        string PostionText = ("X: " + this.gameObject.transform.position.x + ", Y: " + this.gameObject.transform.position.y + "Z: " + this.gameObject.transform.position.y);
-        LocationDisplay.text = PostionText;
+    void UpdateLeverDisplays()
+    {
+        if (LeftLeverDisplay != null)
+        {
+            float leftValue = LeftCaterpilar_Lever != null
+                ? GetTrackInput(LeftCaterpilar_Lever)
+                : 0f;
+            LeftLeverDisplay.SetText("L: {0:0.00}", leftValue);
+        }
+
+        if (RightLeverDisplay != null)
+        {
+            float rightValue = RightCaterpilar_Lever != null
+                ? GetTrackInput(RightCaterpilar_Lever)
+                : 0f;
+            RightLeverDisplay.SetText("R: {0:0.00}", rightValue);
+        }
     }
 
     float GetTrackInput(XRLever lever)

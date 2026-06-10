@@ -14,6 +14,7 @@ public class VictoryUI : MonoBehaviour
     const string UILayerName = "UI";
     const string PlayerLayerName = "Player";
     const string HudLayerName = "HUD";
+    const string DefaultMainMenuSceneName = "MainMenu";
 
     [Header("References")]
     [SerializeField]
@@ -41,7 +42,7 @@ public class VictoryUI : MonoBehaviour
 
     [Header("Main Menu")]
     [SerializeField]
-    string mainMenuSceneName;
+    string mainMenuSceneName = DefaultMainMenuSceneName;
 
     GameObject canvasObject;
     TMP_Text scoreText;
@@ -521,22 +522,18 @@ public class VictoryUI : MonoBehaviour
 
     void OpenMainMenu()
     {
-        if (string.IsNullOrWhiteSpace(mainMenuSceneName))
+        string sceneName = string.IsNullOrWhiteSpace(mainMenuSceneName)
+            ? DefaultMainMenuSceneName
+            : mainMenuSceneName;
+
+        if (!Application.CanStreamedLevelBeLoaded(sceneName))
         {
             Debug.LogWarning(
-                "VictoryUI Main Menu scene is not configured yet.",
+                $"Main Menu scene '{sceneName}' is not in Build Settings.",
                 this);
             return;
         }
 
-        if (!Application.CanStreamedLevelBeLoaded(mainMenuSceneName))
-        {
-            Debug.LogWarning(
-                $"Main Menu scene '{mainMenuSceneName}' is not in Build Settings.",
-                this);
-            return;
-        }
-
-        SceneManager.LoadScene(mainMenuSceneName);
+        SceneManager.LoadScene(sceneName);
     }
 }
