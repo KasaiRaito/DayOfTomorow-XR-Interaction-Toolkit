@@ -16,6 +16,8 @@ public class TargetSpawner : MonoBehaviour
     }
 
     public static TargetSpawner Instance { get; private set; }
+    public float SpawnRadius => spawnRadius;
+    public float MinimumSpawnDistance => minimumSpawnDistance;
 
     [Header("Targets")]
     [SerializeField]
