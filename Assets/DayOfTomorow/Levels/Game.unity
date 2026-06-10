@@ -2212,6 +2212,7 @@ GameObject:
   - component: {fileID: 743287364}
   - component: {fileID: 743287363}
   - component: {fileID: 743287365}
+  - component: {fileID: 743287367}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -2268,7 +2269,8 @@ MonoBehaviour:
   hudCanvas: {fileID: 914712342}
   playerRoot: {fileID: 15857176}
   displayedHighScores: 10
-  planeDistance: 2
+  planeDistance: 4
+  viewportScale: 0.8
   mainMenuSceneName: MainMenu
 --- !u!4 &743287366
 Transform:
@@ -2285,6 +2287,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &743287367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 743287362}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8a1e0c7f51e4e0bb8a6cbfe3f602111, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PauseUI
+  sessionManager: {fileID: 743287363}
+  uiCamera: {fileID: 1808006186}
+  planeDistance: 4
+  mainMenuSceneName: MainMenu
 --- !u!1 &747381936
 GameObject:
   m_ObjectHideFlags: 0
@@ -2691,7 +2709,7 @@ Canvas:
   serializedVersion: 3
   m_RenderMode: 1
   m_Camera: {fileID: 1778965085}
-  m_PlaneDistance: 1
+  m_PlaneDistance: 2
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 1

@@ -40,6 +40,9 @@ public class VictoryUI : MonoBehaviour
     [SerializeField, Min(0.1f)]
     float planeDistance = 1f;
 
+    [SerializeField, Range(0.5f, 1f)]
+    float viewportScale = 0.8f;
+
     [Header("Main Menu")]
     [SerializeField]
     string mainMenuSceneName = DefaultMainMenuSceneName;
@@ -114,6 +117,7 @@ public class VictoryUI : MonoBehaviour
     {
         displayedHighScores = Mathf.Clamp(displayedHighScores, 1, 10);
         planeDistance = Mathf.Max(0.1f, planeDistance);
+        viewportScale = Mathf.Clamp(viewportScale, 0.5f, 1f);
     }
 
     void BuildUI()
@@ -167,9 +171,23 @@ public class VictoryUI : MonoBehaviour
         scaler.dynamicPixelsPerUnit = 10f;
         scaler.referencePixelsPerUnit = 100f;
 
+        GameObject contentObject = new GameObject(
+            "Victory Content",
+            typeof(RectTransform));
+        contentObject.layer = canvasObject.layer;
+
+        RectTransform contentRect =
+            contentObject.GetComponent<RectTransform>();
+        contentRect.SetParent(canvasRect, false);
+        contentRect.anchorMin = new Vector2(0.5f, 0.5f);
+        contentRect.anchorMax = new Vector2(0.5f, 0.5f);
+        contentRect.pivot = new Vector2(0.5f, 0.5f);
+        contentRect.anchoredPosition = Vector2.zero;
+        contentRect.localScale = Vector3.one * viewportScale;
+
         Image background = CreateImage(
             "Background",
-            canvasRect,
+            contentRect,
             Vector2.zero,
             new Vector2(700f, 560f),
             new Color(0.015f, 0.035f, 0.055f, 0.97f));
@@ -181,7 +199,7 @@ public class VictoryUI : MonoBehaviour
 
         CreateText(
             "Title",
-            canvasRect,
+            contentRect,
             "VICTORY",
             new Vector2(0f, 235f),
             new Vector2(640f, 60f),
@@ -192,7 +210,7 @@ public class VictoryUI : MonoBehaviour
 
         scoreText = CreateText(
             "Score",
-            canvasRect,
+            contentRect,
             "SCORE: 0",
             new Vector2(0f, 170f),
             new Vector2(640f, 50f),
@@ -203,7 +221,7 @@ public class VictoryUI : MonoBehaviour
 
         CreateText(
             "Best Scores Header",
-            canvasRect,
+            contentRect,
             "BEST SCORES",
             new Vector2(0f, 112f),
             new Vector2(640f, 42f),
@@ -214,7 +232,7 @@ public class VictoryUI : MonoBehaviour
 
         bestScoresText = CreateText(
             "Best Scores",
-            canvasRect,
+            contentRect,
             string.Empty,
             new Vector2(0f, -20f),
             new Vector2(580f, 210f),
@@ -225,14 +243,14 @@ public class VictoryUI : MonoBehaviour
 
         retryButton = CreateButton(
             "Retry Button",
-            canvasRect,
+            contentRect,
             "RETRY",
             new Vector2(-140f, -235f),
             Retry);
 
         CreateButton(
             "Main Menu Button",
-            canvasRect,
+            contentRect,
             "MAIN MENU",
             new Vector2(140f, -235f),
             OpenMainMenu);
