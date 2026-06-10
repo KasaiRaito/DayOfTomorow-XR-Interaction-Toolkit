@@ -24,6 +24,9 @@ public class PauseUI : MonoBehaviour
     [SerializeField, Min(0.1f)]
     float planeDistance = 2f;
 
+    [SerializeField, Range(0.5f, 1f)]
+    float viewportScale = 0.8f;
+
     [Header("Main Menu")]
     [SerializeField]
     string mainMenuSceneName = DefaultMainMenuSceneName;
@@ -96,6 +99,7 @@ public class PauseUI : MonoBehaviour
     void OnValidate()
     {
         planeDistance = Mathf.Max(0.1f, planeDistance);
+        viewportScale = Mathf.Clamp(viewportScale, 0.5f, 1f);
     }
 
     void OnPausePressed(InputAction.CallbackContext context)
@@ -162,9 +166,23 @@ public class PauseUI : MonoBehaviour
         scaler.dynamicPixelsPerUnit = 10f;
         scaler.referencePixelsPerUnit = 100f;
 
+        GameObject contentObject = new GameObject(
+            "Pause Content",
+            typeof(RectTransform));
+        contentObject.layer = canvasObject.layer;
+
+        RectTransform contentRect =
+            contentObject.GetComponent<RectTransform>();
+        contentRect.SetParent(canvasRect, false);
+        contentRect.anchorMin = new Vector2(0.5f, 0.5f);
+        contentRect.anchorMax = new Vector2(0.5f, 0.5f);
+        contentRect.pivot = new Vector2(0.5f, 0.5f);
+        contentRect.anchoredPosition = Vector2.zero;
+        contentRect.localScale = Vector3.one * viewportScale;
+
         Image background = CreateImage(
             "Background",
-            canvasRect,
+            contentRect,
             Vector2.zero,
             new Vector2(620f, 390f),
             new Color(0.015f, 0.035f, 0.055f, 0.97f));
@@ -176,7 +194,7 @@ public class PauseUI : MonoBehaviour
 
         CreateText(
             "Title",
-            canvasRect,
+            contentRect,
             "PAUSED",
             new Vector2(0f, 120f),
             new Vector2(560f, 70f),
@@ -187,14 +205,14 @@ public class PauseUI : MonoBehaviour
 
         continueButton = CreateButton(
             "Continue Button",
-            canvasRect,
+            contentRect,
             "CONTINUE",
             new Vector2(0f, 25f),
             Continue);
 
         CreateButton(
             "Main Menu Button",
-            canvasRect,
+            contentRect,
             "MAIN MENU",
             new Vector2(0f, -80f),
             OpenMainMenu);

@@ -5,6 +5,8 @@ using UnityEngine.XR.Content.Interaction;
 
 public class Tank : MonoBehaviour
 {
+    [Header("Player")] public GameObject Player;
+    
     [Header("Displays")]
     [FormerlySerializedAs("LocationDisplay")]
     public TMP_Text LeftLeverDisplay;
@@ -91,6 +93,9 @@ public class Tank : MonoBehaviour
 
         if (canonAimSphere != null)
             initialCanonRotation = canonAimSphere.localRotation;
+        
+        if(Player != null)
+            Player.transform.position = new Vector3(0, 0, 0);
     }
 
     void OnEnable()

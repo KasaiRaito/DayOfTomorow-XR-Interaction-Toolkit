@@ -274,27 +274,6 @@ public class VictoryUI : MonoBehaviour
         SetLayerRecursively(hudCanvas.gameObject, hudLayer);
         uiCamera.cullingMask |= 1 << hudLayer;
         EnableDistanceUIInteraction(hudLayer);
-
-        hudCanvas.renderMode = RenderMode.ScreenSpaceCamera;
-        hudCanvas.worldCamera = uiCamera;
-        hudCanvas.planeDistance = Mathf.Max(
-            planeDistance,
-            uiCamera.nearClipPlane + 0.01f);
-        hudCanvas.overrideSorting = true;
-        hudCanvas.sortingOrder = 90;
-
-        CanvasScaler scaler = hudCanvas.GetComponent<CanvasScaler>();
-
-        if (scaler == null)
-            return;
-
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1080f, 1080f);
-        scaler.screenMatchMode =
-            CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-        scaler.matchWidthOrHeight = 0.5f;
-        scaler.dynamicPixelsPerUnit = 10f;
-        scaler.referencePixelsPerUnit = 100f;
     }
 
     void FindPlayerRoot()
