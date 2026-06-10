@@ -16,10 +16,10 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
+  - Overlay UI
+  - Player
+  - HUD
+  - InWorldCanvas
   - 
   - 
   - 
@@ -55,3 +55,4 @@ TagManager:
   - Light Layer 5
   - Light Layer 6
   - Light Layer 7
+  m_MigratedRenderPipelines: []

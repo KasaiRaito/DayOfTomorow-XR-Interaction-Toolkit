@@ -2,6 +2,7 @@ using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using System.Collections.Generic;
 
 namespace UnityEngine.XR.Content.Interaction
 {
@@ -18,11 +19,15 @@ namespace UnityEngine.XR.Content.Interaction
 
         [SerializeField]
         [Tooltip("The value of the lever")]
-        bool m_Value = false;
+        float m_Value = 0.0f;
 
         [SerializeField]
         [Tooltip("If enabled, the lever will snap to the value position when released")]
         bool m_LockToValue;
+        
+        [SerializeField]
+        [Tooltip("List of Stable positions")]
+        List<float> m_StablePositions = new List<float>();
 
         [SerializeField]
         [Tooltip("Angle of the lever in the 'on' position")]
@@ -33,10 +38,10 @@ namespace UnityEngine.XR.Content.Interaction
         [Tooltip("Angle of the lever in the 'off' position")]
         [Range(-90.0f, 90.0f)]
         float m_MinAngle = -90.0f;
-
+        
         [SerializeField]
         [Tooltip("Events to trigger when the lever activates")]
-        UnityEvent m_OnLeverActivate = new UnityEvent();
+        UnityEvent m_OnLeverChangeValue = new UnityEvent();
 
         [SerializeField]
         [Tooltip("Events to trigger when the lever deactivates")]
@@ -56,7 +61,7 @@ namespace UnityEngine.XR.Content.Interaction
         /// <summary>
         /// The value of the lever
         /// </summary>
-        public bool value
+        public float value
         {
             get => m_Value;
             set => SetValue(value, true);
@@ -88,7 +93,7 @@ namespace UnityEngine.XR.Content.Interaction
         /// <summary>
         /// Events to trigger when the lever activates
         /// </summary>
-        public UnityEvent onLeverActivate => m_OnLeverActivate;
+        public UnityEvent onLeverActivate => m_OnLeverChangeValue;
 
         /// <summary>
         /// Events to trigger when the lever deactivates
@@ -157,44 +162,50 @@ namespace UnityEngine.XR.Content.Interaction
             else
                 lookAngle = Mathf.Clamp(lookAngle, m_MaxAngle, m_MinAngle);
 
-            var maxAngleDistance = Mathf.Abs(m_MaxAngle - lookAngle);
-            var minAngleDistance = Mathf.Abs(m_MinAngle - lookAngle);
-
-            if (m_Value)
-                maxAngleDistance *= (1.0f - k_LeverDeadZone);
-            else
-                minAngleDistance *= (1.0f - k_LeverDeadZone);
-
-            var newValue = (maxAngleDistance < minAngleDistance);
+            var newValue = lookAngle;//(maxAngleDistance < minAngleDistance);
 
             SetHandleAngle(lookAngle);
 
             SetValue(newValue);
+             
         }
 
-        void SetValue(bool isOn, bool forceRotation = false)
+        void SetValue(float angle, bool forceRotation = false)
         {
-            if (m_Value == isOn)
-            {
-                if (forceRotation)
-                    SetHandleAngle(m_Value ? m_MaxAngle : m_MinAngle);
-
-                return;
-            }
-
-            m_Value = isOn;
-
-            if (m_Value)
-            {
-                m_OnLeverActivate.Invoke();
-            }
-            else
-            {
-                m_OnLeverDeactivate.Invoke();
-            }
-
+            var targetAngle = angle;
+            
             if (!isSelected && (m_LockToValue || forceRotation))
-                SetHandleAngle(m_Value ? m_MaxAngle : m_MinAngle);
+                targetAngle = FindNearestStableAngle(angle);
+            
+            m_Value = targetAngle;
+            SetHandleAngle(targetAngle);
+            
+            //Debug.Log(m_Value);
+            
+            m_OnLeverChangeValue.Invoke();
+        }
+
+        float FindNearestStableAngle(float angle)
+        {
+            if (m_StablePositions.Count == 0 )
+                return angle;
+            
+            var closestAngle = m_StablePositions[0];
+            var smallestDistance = Mathf.Abs(Mathf.DeltaAngle(angle, closestAngle));
+
+            for (int i = 1; i < m_StablePositions.Count; i++)
+            {
+                var stableAngle = m_StablePositions[i];
+                var distance = Mathf.Abs(Mathf.DeltaAngle(angle, stableAngle));
+                
+                if (distance < smallestDistance)
+                {
+                    closestAngle = stableAngle;
+                    smallestDistance = distance;
+                }
+            }
+            
+            return closestAngle;
         }
 
         void SetHandleAngle(float angle)
@@ -224,7 +235,7 @@ namespace UnityEngine.XR.Content.Interaction
 
         void OnValidate()
         {
-            SetHandleAngle(m_Value ? m_MaxAngle : m_MinAngle);
+            SetHandleAngle(m_Value);
         }
     }
 }

@@ -61,7 +61,7 @@ namespace UnityEngine.XR.Content.Interaction
         bool m_Pressed = false;
         bool m_Toggled = false;
         float m_Value = 0f;
-        Vector3 m_BaseButtonPosition = Vector3.zero;
+        Vector3 m_BaseButtonLocalPosition = Vector3.zero;
 
         Dictionary<IXRHoverInteractor, PressInfo> m_HoveringInteractors = new Dictionary<IXRHoverInteractor, PressInfo>();
 
@@ -133,7 +133,7 @@ namespace UnityEngine.XR.Content.Interaction
         void Start()
         {
             if (m_Button != null)
-                m_BaseButtonPosition = m_Button.position;
+                m_BaseButtonLocalPosition = m_Button.localPosition;
         }
 
         protected override void OnEnable()
@@ -198,7 +198,10 @@ namespace UnityEngine.XR.Content.Interaction
             foreach (var pressInfo in m_HoveringInteractors.Values)
             {
                 var interactorTransform = pressInfo.m_Interactor.GetAttachTransform(this);
-                var localOffset = transform.InverseTransformVector(interactorTransform.position - m_BaseButtonPosition);
+                var baseButtonPosition = m_Button.parent != null
+                    ? m_Button.parent.TransformPoint(m_BaseButtonLocalPosition)
+                    : m_BaseButtonLocalPosition;
+                var localOffset = transform.InverseTransformVector(interactorTransform.position - baseButtonPosition);
 
                 var withinButtonRegion = (Mathf.Abs(localOffset.x) < m_ButtonSize && Mathf.Abs(localOffset.z) < m_ButtonSize);
                 if (withinButtonRegion)
