@@ -22,6 +22,9 @@ public class VictoryUI : MonoBehaviour
     [SerializeField]
     Camera uiCamera;
 
+    [SerializeField]
+    Canvas hudCanvas;
+
     [Header("Scores")]
     [SerializeField, Range(1, 10)]
     int displayedHighScores = 10;
@@ -59,6 +62,15 @@ public class VictoryUI : MonoBehaviour
         if (uiCamera == null)
             uiCamera = FindAnyObjectByType<Camera>();
 
+        if (hudCanvas == null)
+        {
+            GameObject hudObject = GameObject.Find("HUD-Canvas");
+
+            if (hudObject != null)
+                hudCanvas = hudObject.GetComponent<Canvas>();
+        }
+
+        ConfigureHudCanvas();
         BuildUI();
         Hide();
     }
@@ -207,6 +219,48 @@ public class VictoryUI : MonoBehaviour
             "MAIN MENU",
             new Vector2(140f, -235f),
             OpenMainMenu);
+    }
+
+    void ConfigureHudCanvas()
+    {
+        if (hudCanvas == null || uiCamera == null)
+            return;
+
+        int uiLayer = LayerMask.NameToLayer(UILayerName);
+
+        if (uiLayer < 0)
+            return;
+
+        SetLayerRecursively(hudCanvas.gameObject, uiLayer);
+
+        hudCanvas.renderMode = RenderMode.ScreenSpaceCamera;
+        hudCanvas.worldCamera = uiCamera;
+        hudCanvas.planeDistance = Mathf.Max(
+            planeDistance,
+            uiCamera.nearClipPlane + 0.01f);
+        hudCanvas.overrideSorting = true;
+        hudCanvas.sortingOrder = 90;
+
+        CanvasScaler scaler = hudCanvas.GetComponent<CanvasScaler>();
+
+        if (scaler == null)
+            return;
+
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1080f, 1080f);
+        scaler.screenMatchMode =
+            CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        scaler.matchWidthOrHeight = 0.5f;
+        scaler.dynamicPixelsPerUnit = 10f;
+        scaler.referencePixelsPerUnit = 100f;
+    }
+
+    static void SetLayerRecursively(GameObject root, int layer)
+    {
+        root.layer = layer;
+
+        foreach (Transform child in root.transform)
+            SetLayerRecursively(child.gameObject, layer);
     }
 
     void EnableDistanceUIInteraction(int uiLayer)
