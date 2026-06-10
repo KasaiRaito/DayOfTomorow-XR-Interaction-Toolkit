@@ -538,6 +538,7 @@ MonoBehaviour:
   creditsLinkLabel: OPEN WEB PAGE
   worldScale: 0.002
   eventCamera: {fileID: 1956809917}
+  lockPlayerMovement: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

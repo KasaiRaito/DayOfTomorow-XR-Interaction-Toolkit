@@ -534,8 +534,18 @@ public class VictoryUI : MonoBehaviour
 
     void Retry()
     {
-        if (sessionManager != null)
-            sessionManager.StartSession();
+        Scene currentScene = SceneManager.GetActiveScene();
+
+        if (!currentScene.IsValid())
+        {
+            Debug.LogWarning(
+                "VictoryUI could not reload the current scene.",
+                this);
+            return;
+        }
+
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(currentScene.buildIndex);
     }
 
     void OpenMainMenu()

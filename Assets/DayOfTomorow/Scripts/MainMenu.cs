@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -5,6 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
 public class MainMenu : MonoBehaviour
@@ -35,6 +37,13 @@ public class MainMenu : MonoBehaviour
     [SerializeField]
     Camera eventCamera;
 
+    [Header("Player")]
+    [SerializeField]
+    bool lockPlayerMovement = true;
+
+    readonly List<LocomotionProvider> disabledLocomotionProviders =
+        new List<LocomotionProvider>();
+
     GameObject canvasObject;
     GameObject mainPanel;
     GameObject creditsPanel;
@@ -48,6 +57,17 @@ public class MainMenu : MonoBehaviour
 
         EnsureEventSystem();
         BuildUI();
+    }
+
+    void OnEnable()
+    {
+        if (lockPlayerMovement)
+            LockPlayerMovement();
+    }
+
+    void OnDisable()
+    {
+        RestorePlayerMovement();
     }
 
     void Start()
@@ -393,6 +413,36 @@ public class MainMenu : MonoBehaviour
             interactor.enableUIInteraction = true;
             interactor.raycastMask |= uiLayerMask;
         }
+    }
+
+    void LockPlayerMovement()
+    {
+        RestorePlayerMovement();
+
+        LocomotionProvider[] locomotionProviders =
+            FindObjectsByType<LocomotionProvider>(
+                FindObjectsInactive.Include);
+
+        foreach (LocomotionProvider provider in locomotionProviders)
+        {
+            if (provider == null || !provider.enabled)
+                continue;
+
+            provider.enabled = false;
+            disabledLocomotionProviders.Add(provider);
+        }
+    }
+
+    void RestorePlayerMovement()
+    {
+        foreach (LocomotionProvider provider in
+                 disabledLocomotionProviders)
+        {
+            if (provider != null)
+                provider.enabled = true;
+        }
+
+        disabledLocomotionProviders.Clear();
     }
 
     static void SetLayerRecursively(GameObject root, int layer)
