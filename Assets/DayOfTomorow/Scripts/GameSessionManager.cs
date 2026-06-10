@@ -1,9 +1,13 @@
+using System;
 using TMPro;
 using UnityEngine;
 
 public class GameSessionManager : MonoBehaviour
 {
     public static GameSessionManager Instance { get; private set; }
+
+    public event Action SessionStarted;
+    public event Action SessionEnded;
 
     [Header("Session")]
     [SerializeField, Min(1f)]
@@ -92,6 +96,7 @@ public class GameSessionManager : MonoBehaviour
             targetSpawner.BeginSession();
 
         UpdateDisplays();
+        SessionStarted?.Invoke();
     }
 
     public void EndSession()
@@ -109,6 +114,7 @@ public class GameSessionManager : MonoBehaviour
             LastScorePosition = scoreManager.SubmitScore(CurrentScore);
 
         UpdateDisplays();
+        SessionEnded?.Invoke();
     }
 
     public void AddScore(int points)
