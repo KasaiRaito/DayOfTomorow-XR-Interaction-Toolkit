@@ -150,6 +150,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1908828526}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1932808 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1351904833967977961, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+  m_PrefabInstance: {fileID: 87421636}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &15857176 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
@@ -3420,39 +3425,39 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
       propertyPath: m_StablePositions.Array.size
-      value: 9
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
       propertyPath: 'm_StablePositions.Array.data[0]'
-      value: -50
-      objectReference: {fileID: 0}
-    - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
-      propertyPath: 'm_StablePositions.Array.data[1]'
-      value: -40
-      objectReference: {fileID: 0}
-    - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
-      propertyPath: 'm_StablePositions.Array.data[2]'
-      value: -30
-      objectReference: {fileID: 0}
-    - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
-      propertyPath: 'm_StablePositions.Array.data[3]'
-      value: -20
-      objectReference: {fileID: 0}
-    - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
-      propertyPath: 'm_StablePositions.Array.data[4]'
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
+      propertyPath: 'm_StablePositions.Array.data[1]'
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
+      propertyPath: 'm_StablePositions.Array.data[2]'
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
+      propertyPath: 'm_StablePositions.Array.data[3]'
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
+      propertyPath: 'm_StablePositions.Array.data[4]'
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
       propertyPath: 'm_StablePositions.Array.data[5]'
-      value: 20
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
       propertyPath: 'm_StablePositions.Array.data[6]'
-      value: 30
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
       propertyPath: 'm_StablePositions.Array.data[7]'
-      value: 40
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
       propertyPath: 'm_StablePositions.Array.data[8]'
@@ -3551,7 +3556,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05a13636ad4c68b48a8ddf25410c90f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Tank
-  Player: {fileID: 0}
+  Player: {fileID: 1932808}
   LeftLeverDisplay: {fileID: 774686846}
   RightLeverDisplay: {fileID: 135765435}
   LeftCaterpilar_Lever: {fileID: 2070661841}
@@ -4904,9 +4909,9 @@ MonoBehaviour:
     scoreValue: 50
     color: {r: 0.1, g: 0.65, b: 1, a: 1}
   activeTargetCount: 5
-  spawnRadius: 50
-  minimumSpawnDistance: 20
-  minimumTargetSpacing: 10
+  spawnRadius: 190
+  minimumSpawnDistance: 25
+  minimumTargetSpacing: 100
   spawnPositionAttempts: 20
 --- !u!1 &1908828525
 GameObject:
@@ -5304,11 +5309,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
       propertyPath: m_StablePositions.Array.size
-      value: 9
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
       propertyPath: 'm_StablePositions.Array.data[0]'
-      value: -50
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5283898766228162098, guid: 36eff8b49ecdca745894efb1d2ce5f8f, type: 3}
       propertyPath: 'm_StablePositions.Array.data[1]'
@@ -5547,7 +5552,7 @@ MonoBehaviour:
   tank: {fileID: 1267840026}
   targetSpawner: {fileID: 1819933110}
   useSpawnerRadius: 1
-  worldRadius: 50
+  worldRadius: 200
   mapPadding: 1.1
   textureHeight: 256
   refreshRate: 15
@@ -5576,11 +5581,11 @@ PrefabInstance:
       objectReference: {fileID: 1267840026}
     - target: {fileID: 2478673928345761024, guid: ba9ca82109828b347a4d7e2c10f82f87, type: 3}
       propertyPath: maximumDistance
-      value: 30
+      value: 70
       objectReference: {fileID: 0}
     - target: {fileID: 2478673928345761024, guid: ba9ca82109828b347a4d7e2c10f82f87, type: 3}
       propertyPath: minimumDistance
-      value: 5
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 3582176721187368061, guid: ba9ca82109828b347a4d7e2c10f82f87, type: 3}
       propertyPath: m_LocalPosition.x
